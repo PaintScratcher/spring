@@ -77,20 +77,22 @@ class Worker(object):
 class KVWorker(Worker):
 
     def gen_cmd_sequence(self, cb=None):
+        scale_factor = self.BATCH_SIZE / 100
         ops = \
-            ['c'] * self.ws.creates + \
-            ['r'] * self.ws.reads + \
-            ['u'] * self.ws.updates + \
-            ['d'] * self.ws.deletes + \
-            ['cas'] * self.ws.cases
+            ['c'] * (self.ws.creates * scale_factor) + \
+            ['r'] * (self.ws.reads * scale_factor) + \
+            ['u'] * (self.ws.updates * scale_factor) + \
+            ['d'] * (self.ws.deletes * scale_factor) + \
+            ['cas'] * (self.ws.cases * scale_factor)
         random.shuffle(ops)
 
         curr_items_tmp = curr_items_spot = self.curr_items.value
         if self.ws.creates:
             with self.lock:
-                self.curr_items.value += self.ws.creates
-                curr_items_tmp = self.curr_items.value - self.ws.creates
-            curr_items_spot = curr_items_tmp - self.ws.creates * self.ws.workers
+                self.curr_items.value += (self.ws.creates * scale_factor)
+                curr_items_tmp = self.curr_items.value - (self.ws.creates * scale_factor)
+            curr_items_spot = curr_items_tmp - (self.ws.creates * scale_factor) * self.ws.workers
+
 
         deleted_items_tmp = deleted_spot = 0
         if self.ws.deletes:
