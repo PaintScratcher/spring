@@ -159,7 +159,7 @@ class KVWorker(Worker):
 
 class AsyncKVWorker(KVWorker):
 
-    NUM_CONNECTIONS = 8
+    NUM_CONNECTIONS = 1
 
     def init_db(self, params):
         self.cbs = [CBAsyncGen(**params) for _ in range(self.NUM_CONNECTIONS)]
